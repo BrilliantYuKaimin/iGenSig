@@ -1,12 +1,12 @@
 ## the iGenSig module has been tested on the latest R version 4.1.2
-setwd("your working directory") # set your working directory
+
 source("GenSig.modules1.b3.2.9.github.R")
 #####################################################################################
 ### Step1. Load GDSC drug response data, binary genomic features and feature redundancy files
 #####################################################################################
 GDSC.drugData <- read.delim("DrugResponseData/GDSC1_response.tsv", stringsAsFactors = F, check.names = F, header = T, sep = "\t")
 CCLE.drugData <- read.delim("DrugResponseData/CCLE_response.tsv", stringsAsFactors = F, check.names = F, header = T, sep = "\t")
-drug.vec <- c(1, 179) # 用于建模的 drug ID，drug ID 1 是厄洛替尼
+drug.vec <- c(1, 179) # 用于建模的 drug ID，1 是厄洛替尼
 load("GenotypeData/GDSC.genotype.list.RData")
 load("GenotypeData/CCLE.genotype.list.RData")
 GDSC.preCalfile <- "PrecalMatrixData/GDSC.12bins.preCal.RData"
@@ -83,11 +83,11 @@ Trial.gensigdir <- paste(resultdir, "/BATTLE", sep = "")
 dir.create(Trial.gensigdir)
 Trial.preCalfile <- "PrecalMatrixData/BATTLE.12bins.preCal.RData"
 model.GDSC2trial(
-  GDSC.gensigdir = GDSC.gensigdir,
-  Trial.gensigdir = Trial.gensigdir,
-  Trial.drug = Trial.drug,
+  GDSC.gensigdir = GDSC.gensigdir,                       # "Results/GDSC"
+  Trial.gensigdir = Trial.gensigdir,                     # "Results/BATTLE"
+  Trial.drug = Trial.drug,                               # 1
   Trial.genotype.list = Trial.genotype.list,
-  Trial.preCalfile = Trial.preCalfile,
+  Trial.preCalfile = Trial.preCalfile,                   # "PrecalMatrixData/BATTLE.12bins.preCal.RData"
   TCGA.catype.genotype.list = TCGA.catype.genotype.list
 )
 ## The model.GDSC2trial module can pre-calculate feature redundancy automatically
