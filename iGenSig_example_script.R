@@ -6,7 +6,7 @@ source("GenSig.modules1.b3.2.9.github.R")
 #####################################################################################
 GDSC.drugData <- read.delim("DrugResponseData/GDSC1_response.tsv", stringsAsFactors = F, check.names = F, header = T, sep = "\t")
 CCLE.drugData <- read.delim("DrugResponseData/CCLE_response.tsv", stringsAsFactors = F, check.names = F, header = T, sep = "\t")
-drug.vec <- c(1, 179) # select the drug IDs for modeling. drug ID 1 is Erlotinib
+drug.vec <- c(1, 179) # 用于建模的 drug ID，drug ID 1 是厄洛替尼
 load("GenotypeData/GDSC.genotype.list.RData")
 load("GenotypeData/CCLE.genotype.list.RData")
 GDSC.preCalfile <- "PrecalMatrixData/GDSC.12bins.preCal.RData"
@@ -50,24 +50,24 @@ lapply(drug.vec, run.weightedKS.drugV2, drugData = GDSC.drugData, genotype.list 
 #####################################################################################
 GDSC.weightdir <- "./Results/GDSC" # please specify the folder where the weight files based on GDSC dataset are located (i.e., weightTransf_NES_drugID_1.resistant.xls).
 batchCalGenSig.GDSC(
-  GDSC.genotype.list = GDSC.genotype.list,
-  GDSC.preCalfile = GDSC.preCalfile,
-  drug.vec = drug.vec,
+  GDSC.genotype.list = GDSC.genotype.list,    # load("GenotypeData/GDSC.genotype.list.RData")
+  GDSC.preCalfile = GDSC.preCalfile,          # "PrecalMatrixData/GDSC.12bins.preCal.RData"
+  drug.vec = drug.vec,                        # c(1, 179)
   GDSC.drugData = GDSC.drugData,
-  GDSC.testsetdir = GDSC.testsetdir,
-  GDSC.weightdir = GDSC.weightdir, # specify the folder containing the GDSC weight files
-  GDSC.gensigdir = GDSC.gensigdir, # specify the folder for GDSC output model files
-  q.cut = q.cut
+  GDSC.testsetdir = GDSC.testsetdir,          # "TestsetAnnotationData"
+  GDSC.weightdir = GDSC.weightdir,            # "Results/GDSC"
+  GDSC.gensigdir = GDSC.gensigdir,            # "Results/GDSC"
+  q.cut = q.cut                               # 0.1
 )
 #####################################################################################
 ### Step5. Apply GDSC iGenSig models to model CCLE drug response
 #####################################################################################
 batchCalGenSig.validationset(
-  genotype.list = CCLE.genotype.list,
-  preCalfile = CCLE.preCalfile,
-  drug.vec = drug.vec,
-  GDSC.gensigdir = GDSC.gensigdir,
-  result.gensigdir = CCLE.gensigdir
+  genotype.list = CCLE.genotype.list,         # load("GenotypeData/CCLE.genotype.list.RData")
+  preCalfile = CCLE.preCalfile,               # "PrecalMatrixData/CCLE.12bins.preCal.RData"
+  drug.vec = drug.vec,                        # c(1, 179)
+  GDSC.gensigdir = GDSC.gensigdir,            # "Results/GDSC"
+  result.gensigdir = CCLE.gensigdir           # "Results/CCLE"
 )
 # benchmark modeling results based on GenSig.sensitive scores
 batch.benchmarkGenSig(gensig.dir = CCLE.gensigdir, drugData = CCLE.drugData, dataset = "CCLE") # response: the column name of drug response data, which should be either AUC or ActArea
