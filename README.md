@@ -20,7 +20,9 @@
 
 • If you use linux environment, download all files to your local directory. 
 
+```bash
 $ git clone https://github.com/wangxlab/iGenSig
+```
 
 If you have downloaded all necessary data files, you can find these 4 directories; 
 
