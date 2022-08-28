@@ -4,7 +4,7 @@ sapply(packages, require, character = TRUE)
 #####################################################################################
 ### General Modules
 #####################################################################################
-# scale the max of a vector to 1 and min to 0
+# 把所有数映到 0 和 1 之间的归一化
 normalize <- function(x) {
   return((x - min(x)) / (max(x) - min(x)))
 }
@@ -39,7 +39,7 @@ matrix2genofile <- function(matrix, outfile) {
     write(tmp.out, file = outfile, append = TRUE, sep = "\t", ncolumns = length(tmp.out))
   }
 }
-# take nth root
+# n 次方根
 nthroot <- function(x, n) {
   abs(x)^(1 / n) * sign(x)
 }
@@ -419,8 +419,8 @@ run.weightedKS.fileV2 <- function(test.file, drugData, genotype.list, outdir, mi
   ks.sensitive <- weightedKS.AUCV2(weight = auc.weight, genotype = genotype.select, preCal = TRUE, sensitive = TRUE, correct.outlier = correct.outlier, correct.train = correct.train)
   ks.resistant <- weightedKS.AUCV2(weight = auc.weight, genotype = genotype.select, preCal = TRUE, sensitive = FALSE, correct.outlier = correct.outlier, correct.train = correct.train)
   print("Outputing results")
-  write.table(ks.sensitive, file = paste(outdir, "/weightTransf_NES_drugID_", drugID.call, "_permuID_", permuID, ".sensitive.xls", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
-  write.table(ks.resistant, file = paste(outdir, "/weightTransf_NES_drugID_", drugID.call, "_permuID_", permuID, ".resistant.xls", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+  write.table(ks.sensitive, file = paste(outdir, "/weightTransf_NES_drugID_", drugID.call, "_permuID_", permuID, ".sensitive.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+  write.table(ks.resistant, file = paste(outdir, "/weightTransf_NES_drugID_", drugID.call, "_permuID_", permuID, ".resistant.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
   print(paste("drugID_", drugID.call, " finished", sep = ""))
 }
 # run weighted KS for all cell lines of a drug ID using weightedKSV2 module
@@ -434,8 +434,8 @@ run.weightedKS.drugV2 <- function(drugID.call, drugData, genotype.list, outdir, 
   ks.sensitive <- weightedKS.AUCV2(auc.weight, genotype.select, preCal = TRUE, sensitive = TRUE, root = transform.root, p.cut = p.cut, correct.outlier = correct.outlier, correct.train = correct.train)
   ks.resistant <- weightedKS.AUCV2(auc.weight, genotype.select, preCal = TRUE, sensitive = FALSE, root = transform.root, p.cut = p.cut, correct.outlier = correct.outlier, correct.train = correct.train)
   print("Outputing results")
-  write.table(ks.sensitive, file = paste(outdir, "/weightTransf_NES_drugID_", drugID.call, ".sensitive.xls", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
-  write.table(ks.resistant, file = paste(outdir, "/weightTransf_NES_drugID_", drugID.call, ".resistant.xls", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+  write.table(ks.sensitive, file = paste(outdir, "/weightTransf_NES_drugID_", drugID.call, ".sensitive.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+  write.table(ks.resistant, file = paste(outdir, "/weightTransf_NES_drugID_", drugID.call, ".resistant.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
   print(paste("drugID_", drugID.call, " finished", sep = ""))
 }
 #####################################################################################
@@ -494,6 +494,7 @@ cal.genSig <- function(gensig.model = NULL, file.sen = NULL, file.res = NULL, pr
       nes.sen.sub <- nes.sen.input[nes.sen.input$NES > weight.cut & nes.sen.input$pValue < p.cut & nes.sen.input$qValue < q.cut, -c(3, 4)]
       nes.res.sub <- nes.res.input[nes.res.input$NES > weight.cut & nes.res.input$pValue < p.cut & nes.res.input$qValue < q.cut, -c(3, 4)]
     }
+    # 把第一列弄成行名
     nes.sen <- as.matrix(nes.sen.sub[-1])
     row.names(nes.sen) <- nes.sen.sub$Genotype
     nes.res <- as.matrix(nes.res.sub[-1])
@@ -564,13 +565,13 @@ batchCalGenSig.GDSC <- function(GDSC.genotype.list, GDSC.preCalfile, drug.vec, G
   } else {
     print("precalfile name wrong")
   }
-  files <- list.files(path = GDSC.weightdir, pattern = "sensitive.xls")
+  files <- list.files(path = GDSC.weightdir, pattern = "sensitive.tsv")
   if (length(files) == 0) stop(paste("weight files not detected in", GDSC.weightdir, sep = " "))
   runs <- c()
   for (file in files) {
     drugID.call <- as.numeric(unlist(str_extract_all(file, "(?<=drugID\\_)\\d+"))[1])
     if (drugID.call %in% drug.vec) {
-      prefix <- sub(".sensitive.xls", "", file)
+      prefix <- sub(".sensitive.tsv", "", file)
       runs <- c(prefix, runs)
     }
   }
@@ -579,9 +580,9 @@ batchCalGenSig.GDSC <- function(GDSC.genotype.list, GDSC.preCalfile, drug.vec, G
     prefix <- runs[i]
     drugID.call <- as.numeric(unlist(str_extract_all(prefix, "(?<=drugID\\_)\\d+"))[1])
     permuID.call <- as.numeric(unlist(str_extract_all(prefix, "(?<=permuID\\_)\\d+"))[1])
-    file.sen <- paste(GDSC.weightdir, "/", prefix, ".sensitive.xls", sep = "")
-    file.res <- paste(GDSC.weightdir, "/", prefix, ".resistant.xls", sep = "")
-    outfile <- paste(GDSC.gensigdir, "/", prefix, "_genSig.xls", sep = "")
+    file.sen <- paste(GDSC.weightdir, "/", prefix, ".sensitive.tsv", sep = "")
+    file.res <- paste(GDSC.weightdir, "/", prefix, ".resistant.tsv", sep = "")
+    outfile <- paste(GDSC.gensigdir, "/", prefix, "_genSig.tsv", sep = "")
     if (file.exists(outfile) & skip.completed == T) {
       print(paste(outfile, " found, calculation skipped", sep = ""))
       next
@@ -645,7 +646,7 @@ batchCalGenSig.validationset <- function(genotype.list, preCalfile, drug.vec, GD
     file.model <- paste(GDSC.gensigdir, "/", prefix, "_genSig.rda", sep = "")
     gensig.model <- mget(load(file.model, envir = (tmp <- new.env())), envir = tmp)$gensig.model
     list2env(gensig.model$parameters, env = environment())
-    outfile <- paste(result.gensigdir, "/", prefix, "_genSig.xls", sep = "")
+    outfile <- paste(result.gensigdir, "/", prefix, "_genSig.tsv", sep = "")
     print(paste("Computing GeneSig for", prefix, sep = " "))
     if (!file.exists(outfile)) {
       cal.genSig(gensig.model = gensig.model, preCalmatrix = preCalmatrix, genotype.list = genotype.list, trainset = NA, outfile = outfile, p.cut = p.cut, low.p.cut = low.p.cut, q.cut = q.cut, low.q.cut = low.q.cut, power = power, root = root, ECNpenalty = ECNpenalty, rm.equivocal = rm.equivocal)
@@ -755,12 +756,11 @@ benchmark.genSig <- function(iGenSig.resultfile, testset.dir, drugData, score = 
 batch.benchmarkGenSig <- function(gensig.dir, testset.dir = NULL, drugData, dataset = c("GDSC", "CCLE")) {
   match.arg(dataset)
   response <- ifelse(dataset == "GDSC", "AUC", "ActArea")
-  files <- list.files(path = gensig.dir, pattern = "permuID_\\d+_genSig.xls")
+  files <- list.files(path = gensig.dir, pattern = "permuID_\\d+_genSig.tsv")
   benchmark.df <- data.frame(matrix(ncol = 4, nrow = 0))
   plots <- list()
   for (file in files) {
     drugID.call <- as.numeric(unlist(str_extract_all(file, "(?<=drugID_)\\d+"))[1])
-    permuID.call <- as.numeric(unlist(str_extract_all(file, "(?<=permuID_)\\d+"))[1])
     if (drugID.call %in% unique(drugData$DRUG_ID)) {
       tmp.results <- benchmark.genSig(iGenSig.resultfile = paste(gensig.dir, file, sep = "/"), testset.dir = testset.dir, drugData = drugData, score = "GeneSig.sensitive", response = response)
     }
@@ -768,7 +768,7 @@ batch.benchmarkGenSig <- function(gensig.dir, testset.dir = NULL, drugData, data
     plots <- c(plots, tmp.results[[1]])
   }
   colnames(benchmark.df) <- c("drugID", "drugName", "permuID", "AUC")
-  write.table(benchmark.df, file = paste(gensig.dir, "/benchmark.genSig.result.xls", sep = ""), sep = "\t", row.names = FALSE, col.names = TRUE)
+  write.table(benchmark.df, file = paste(gensig.dir, "/benchmark.genSig.result.tsv", sep = ""), sep = "\t", row.names = FALSE, col.names = TRUE)
   if (length(plots) > 0) {
     drugID.prev <- 0
     for (i in 1:length(plots)) {
