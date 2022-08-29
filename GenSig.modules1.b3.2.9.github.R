@@ -784,7 +784,7 @@ batch.benchmarkGenSig <- function(gensig.dir, testset.dir = NULL, drugData, data
         if (drugID.prev != 0) {
           dev.off()
         }
-        pdf(file = paste(gensig.dir, "/DrugID_", drugID.call, "_benchmark.genSig.plot.pdf", sep = ""), width = 4, height = 6)
+        pdf(file = paste(gensig.dir, "/DrugID_", drugID.call, "_benchmark.genSig.plot.pdf", sep = ""), width = 10, height = 16)
         print(paste("Printing DrugID_", drugID.call, "_benchmark.genSig.plot.pdf", sep = ""))
         grid.newpage() # Open a new page on grid device
         pushViewport(viewport(height = 1, layout = grid.layout(round(length(plots) / 3), 3))) # Assign to device viewport with plotN by 3 grid layout
