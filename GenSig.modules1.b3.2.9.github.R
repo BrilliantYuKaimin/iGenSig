@@ -511,7 +511,7 @@ cal.genSig <- function(gensig.model = NULL, file.sen = NULL, file.res = NULL, pr
   result <- data.frame(matrix(ncol = 3, nrow = 0))
   subject.all <- unique(unlist(genotype.list))
   for (i in 1:length(preCalmatrix)) {
-    cellid <- names(preCalmatrix)[i]
+    cellid <- names(preCalmatrix)[i]  # 就是 COSMIC_ID
     if (length(preCalmatrix[[i]]) == 0 | !cellid %in% subject.all) next
     tmp.epsilon <- data.frame(Genotypes = names(preCalmatrix[[i]]), Epsilon = preCalmatrix[[i]], stringsAsFactors = F)
     tmp.epsilon[, "Epsilon"] <- (as.numeric(tmp.epsilon[, "Epsilon"]))^root
@@ -520,7 +520,12 @@ cal.genSig <- function(gensig.model = NULL, file.sen = NULL, file.res = NULL, pr
     res.epsilon <- tmp.epsilon[tmp.epsilon$Genotypes %in% row.names(nes.res), ]
     if (correct.train == T & paste("X", cellid, sep = "") %in% colnames(nes.sen)) {
       sen.weight <- nes.sen[which(row.names(nes.sen) %in% sen.epsilon$Genotypes), c("NES", paste("X", cellid, sep = "")), drop = F]
-      sen.weight <- as.data.frame(replace(sen.weight[, "NES"], which(sen.weight[, paste("X", cellid, sep = "")] != 0), sen.weight[which(sen.weight[, paste("X", cellid, sep = "")] != 0), paste("X", cellid, sep = "")]), stringsAsFactors = FALSE)
+      sen.weight <- as.data.frame(
+        replace(
+          sen.weight[, "NES"],
+          which(sen.weight[, paste("X", cellid, sep = "")] != 0),
+          sen.weight[which(sen.weight[, paste("X", cellid, sep = "")] != 0), paste("X", cellid, sep = "")]),
+        stringsAsFactors = FALSE)
     } else {
       sen.weight <- as.data.frame(nes.sen[which(row.names(nes.sen) %in% sen.epsilon$Genotypes), "NES"], stringsAsFactors = FALSE)
     }
@@ -763,9 +768,9 @@ batch.benchmarkGenSig <- function(gensig.dir, testset.dir = NULL, drugData, data
     drugID.call <- as.numeric(unlist(str_extract_all(file, "(?<=drugID_)\\d+"))[1])
     if (drugID.call %in% unique(drugData$DRUG_ID)) {
       tmp.results <- benchmark.genSig(iGenSig.resultfile = paste(gensig.dir, file, sep = "/"), testset.dir = testset.dir, drugData = drugData, score = "GeneSig.sensitive", response = response)
+      benchmark.df[nrow(benchmark.df) + 1, ] <- tmp.results[[2]]
+      plots <- c(plots, tmp.results[[1]])
     }
-    benchmark.df[nrow(benchmark.df) + 1, ] <- tmp.results[[2]]
-    plots <- c(plots, tmp.results[[1]])
   }
   colnames(benchmark.df) <- c("drugID", "drugName", "permuID", "AUC")
   write.table(benchmark.df, file = paste(gensig.dir, "/benchmark.genSig.result.tsv", sep = ""), sep = "\t", row.names = FALSE, col.names = TRUE)
